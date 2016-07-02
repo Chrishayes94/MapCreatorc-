@@ -1,4 +1,6 @@
 ﻿using MapCreator.gui;
+using MapCreator.GUI.WorldTree;
+using MapCreator.Map;
 using MapCreator.maths;
 using System;
 using System.Collections.Generic;
@@ -23,7 +25,11 @@ namespace MapCreator
 
         private SpriteSheetHandler handler;
 
+        private WorldDataTable table = new WorldDataTable("MapsTable");
+
         private Vector2 mouseLocation = new Vector2(0, 0);
+
+        private int layer = 0;
 
         public MainForm()
         {
@@ -39,49 +45,10 @@ namespace MapCreator
 
             CreatePictureBox();
             CreateMapPictureBox();
-            CreateBasicTreeView();
+            treeView.AddMapCollection(table.CreateDataRow("Map #0"));
         }
-
-        #region TreeView Handlers
-        public ToolStripMenuItem[] CreateMainNodeItems()
-        {
-            ToolStripMenuItem oneNode = new ToolStripMenuItem("Add Map Node");
-            oneNode.MouseDown += AddMapNode_Click;
-
-            return new ToolStripMenuItem[] { oneNode };
-        }
-
-        public ToolStripMenuItem[] CreateMapNodeItems()
-        {
-            ToolStripMenuItem oneNode = new ToolStripMenuItem("Add Layer Node");
-            ToolStripMenuItem secondNode = new ToolStripMenuItem("Delete Map Node");
-            oneNode.MouseDown += AddLayerNode_Click;
-            secondNode.MouseDown += DeleteMapNode_Click;
-
-            return new ToolStripMenuItem[] { oneNode, secondNode };
-        }
-        #endregion
 
         #region Create Boxes
-        private void CreateBasicTreeView()
-        {
-            treeView.Dock = DockStyle.Bottom;
-            treeView.LabelEdit = true;
-
-            TreeNode treeNode = new TreeNode("World Map");
-            treeNode.ContextMenuStrip = new ContextMenuStrip();
-            treeNode.ContextMenuStrip.Items.AddRange(CreateMainNodeItems());
-            treeView.Nodes.Add(treeNode);
-
-            TreeNode[] nodes = new TreeNode[] { new TreeNode("Layer #0") };
-
-            treeNode = new TreeNode("Map #0", nodes);
-            treeNode.ContextMenuStrip = new ContextMenuStrip();
-            treeNode.ContextMenuStrip.Items.AddRange(CreateMapNodeItems());
-            treeView.Nodes.Add(treeNode);
-
-            windowContainer.Panel1.Controls.Add(treeView);
-        }
 
         private void CreatePictureBox()
         {
@@ -115,6 +82,7 @@ namespace MapCreator
 
             tileScreenImage = new PictureBox();
             tileScreenImage.MouseClick += HandleCreationMap_Click;
+            tileScreenImage.Paint += Map_Paint;
             tileScreenImage.SizeMode = PictureBoxSizeMode.AutoSize;
             tileScreenImage.Location = new Point(0, 0);
 
@@ -146,6 +114,17 @@ namespace MapCreator
 
             e.Graphics.DrawImage(image, new PointF(0, 0));
         }
+
+        private void Map_Paint(object sender, PaintEventArgs e)
+        {
+            // Check for any updates required
+            table.CurrentMap.UpdateMapDataImages();
+
+            for (int i = 0; i < table.CurrentMap.MapDataImage.Length; i++)
+            {
+                e.Graphics.DrawImage(table.CurrentMap.MapDataImage[i], 0, 0);
+            }
+        }
         #endregion
 
         #region MouseClick Methods
@@ -154,7 +133,7 @@ namespace MapCreator
             mouseLocation.X = ConvertMouseLocationToImageLocation(e.X);
             mouseLocation.Y = ConvertMouseLocationToImageLocation(e.Y);
 
-            mapDetailsLabel.Text = "Layer : 0 (" + mouseLocation.X + ", " + mouseLocation.Y + ")";
+            mapDetailsLabel.Text = "Layer : " + layer + " (" + mouseLocation.X + ", " + mouseLocation.Y + ")";
 
             sheetBox.Refresh();
         }
@@ -178,12 +157,10 @@ namespace MapCreator
             }
             index += currentX;
 
-            Image image = handler.GetSheetByIndex(0)[index].Image;
+            Sprite spr = handler.GetSheetByIndex(0)[index];
 
-            using (Graphics g = Graphics.FromImage(tileScreenImage.Image))
-            {
-                g.DrawImage(image,  new Point(x, y));
-            }
+            table.CurrentMap.Add(layer, new StaticObject(0, new Vector2(x, y), spr)); 
+
             tileScreenImage.Refresh();
         }
 
@@ -237,33 +214,48 @@ namespace MapCreator
             tileScreenImage.Refresh();
         }
 
-        private void TreeNode_Click(object sender, TreeNodeMouseClickEventArgs e)
+        private void AddNewLayer_Click(object sender, EventArgs e)
         {
-            if (e.Node == null)
-                return;
-            e.Node.BeginEdit();
-        }
-
-        private void AddMapNode_Click(object sender, MouseEventArgs e)
-        {
-
-        }
-
-        private void AddLayerNode_Click(object sender, MouseEventArgs e)
-        {
-        }
-
-        private void DeleteMapNode_Click(object sender, MouseEventArgs e)
-        {
-            treeView.SelectedNode = treeView.GetNodeAt(e.X, e.Y + 5);
-            if (treeView.SelectedNode != null)
+            foreach (ToolStripMenuItem item in layerToolStripMenuItem.DropDownItems)
             {
-                treeView.SelectedNode.Remove();
+                item.Checked = false;
             }
+            int index2 = layerToolStripMenuItem.DropDownItems.IndexOf(sender as ToolStripMenuItem);
+            ToolStripItem layerSender = layerToolStripMenuItem.DropDownItems[index2];
+            layerToolStripMenuItem.DropDownItems.RemoveAt(index2);
+
+            ToolStripItem newLayer = new ToolStripMenuItem("Layer #" + ++layer);
+            newLayer.Click += ChangeLayer_Click;
+
+            layerToolStripMenuItem.DropDownItems.Add(newLayer);
+            layerToolStripMenuItem.DropDownItems.Add(layerSender);
+
+            (layerToolStripMenuItem.DropDownItems[index2] as ToolStripMenuItem).Checked = true;
+
+            table.CurrentMap.Add(layer, new List<IMapEntity>());
+        }
+
+        private void ChangeLayer_Click(object sender, EventArgs e)
+        {
+            foreach (ToolStripMenuItem items in layerToolStripMenuItem.DropDownItems)
+                items.Checked = false;
+
+            ToolStripMenuItem item = sender as ToolStripMenuItem;
+            int index = layerToolStripMenuItem.DropDownItems.IndexOf(item);
+
+            layer = index;
+            item.Checked = true;
+
+            mapDetailsLabel.Text = "Layer : " + layer + " (" + mouseLocation.X + ", " + mouseLocation.Y + ")";
         }
         #endregion
 
         [DllImport("kernel32.dll", EntryPoint = "AllocConsole", SetLastError = true, CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
         public static extern int AllocConsole();
+
+        private void TreeNode_Click(object sender, TreeNodeMouseClickEventArgs e)
+        {
+
+        }
     }
 }

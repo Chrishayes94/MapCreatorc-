@@ -1,4 +1,6 @@
-﻿namespace MapCreator
+﻿using MapCreator.GUI.WorldTree;
+
+namespace MapCreator
 {
     partial class MainForm
     {
@@ -28,6 +30,8 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.Windows.Forms.TreeNode treeNode1 = new System.Windows.Forms.TreeNode("World Map", 0, 0);
+            System.Windows.Forms.TreeNode treeNode2 = new System.Windows.Forms.TreeNode("World Map", 0, 0);
             this.sheetWorker = new System.ComponentModel.BackgroundWorker();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -39,13 +43,16 @@
             this.fillToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.selectedTileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.combinationTilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.layerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.defaultToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.addNewLayerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.extraToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.springLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.mapDetailsLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.windowContainer = new System.Windows.Forms.SplitContainer();
-            this.treeView = new System.Windows.Forms.TreeView();
+            this.treeView = new MapCreator.GUI.WorldTree.WorldDataTree();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.windowContainer)).BeginInit();
@@ -85,7 +92,8 @@
             this.resizeToolStripMenuItem,
             this.clearToolStripMenuItem,
             this.toolStripSeparator1,
-            this.fillToolStripMenuItem});
+            this.fillToolStripMenuItem,
+            this.layerToolStripMenuItem});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
             this.toolsToolStripMenuItem.Size = new System.Drawing.Size(47, 20);
             this.toolsToolStripMenuItem.Text = "Tools";
@@ -93,20 +101,20 @@
             // resizeToolStripMenuItem
             // 
             this.resizeToolStripMenuItem.Name = "resizeToolStripMenuItem";
-            this.resizeToolStripMenuItem.Size = new System.Drawing.Size(106, 22);
+            this.resizeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.resizeToolStripMenuItem.Text = "Resize";
             this.resizeToolStripMenuItem.Click += new System.EventHandler(this.resizeToolStripMenuItem_Click);
             // 
             // clearToolStripMenuItem
             // 
             this.clearToolStripMenuItem.Name = "clearToolStripMenuItem";
-            this.clearToolStripMenuItem.Size = new System.Drawing.Size(106, 22);
+            this.clearToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.clearToolStripMenuItem.Text = "Clear";
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(103, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(149, 6);
             // 
             // fillToolStripMenuItem
             // 
@@ -114,7 +122,7 @@
             this.selectedTileToolStripMenuItem,
             this.combinationTilesToolStripMenuItem});
             this.fillToolStripMenuItem.Name = "fillToolStripMenuItem";
-            this.fillToolStripMenuItem.Size = new System.Drawing.Size(106, 22);
+            this.fillToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.fillToolStripMenuItem.Text = "Fill ";
             // 
             // selectedTileToolStripMenuItem
@@ -129,6 +137,31 @@
             this.combinationTilesToolStripMenuItem.Name = "combinationTilesToolStripMenuItem";
             this.combinationTilesToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
             this.combinationTilesToolStripMenuItem.Text = "Combination Tiles";
+            // 
+            // layerToolStripMenuItem
+            // 
+            this.layerToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.defaultToolStripMenuItem,
+            this.addNewLayerToolStripMenuItem});
+            this.layerToolStripMenuItem.Name = "layerToolStripMenuItem";
+            this.layerToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.layerToolStripMenuItem.Text = "Layer";
+            // 
+            // defaultToolStripMenuItem
+            // 
+            this.defaultToolStripMenuItem.Checked = true;
+            this.defaultToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.defaultToolStripMenuItem.Name = "defaultToolStripMenuItem";
+            this.defaultToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.defaultToolStripMenuItem.Text = "Default";
+            this.defaultToolStripMenuItem.Click += new System.EventHandler(this.ChangeLayer_Click);
+            // 
+            // addNewLayerToolStripMenuItem
+            // 
+            this.addNewLayerToolStripMenuItem.Name = "addNewLayerToolStripMenuItem";
+            this.addNewLayerToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.addNewLayerToolStripMenuItem.Text = "Add New Layer";
+            this.addNewLayerToolStripMenuItem.Click += new System.EventHandler(this.AddNewLayer_Click);
             // 
             // extraToolStripMenuItem
             // 
@@ -187,11 +220,22 @@
             // 
             // treeView
             // 
-            this.treeView.Location = new System.Drawing.Point(3, 222);
+            this.treeView.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.treeView.Location = new System.Drawing.Point(0, 225);
             this.treeView.Name = "treeView";
-            this.treeView.Size = new System.Drawing.Size(250, 222);
+            treeNode1.ImageIndex = 0;
+            treeNode1.Name = "";
+            treeNode1.SelectedImageIndex = 0;
+            treeNode1.Text = "World Map";
+            treeNode2.ImageIndex = 0;
+            treeNode2.Name = "";
+            treeNode2.SelectedImageIndex = 0;
+            treeNode2.Text = "World Map";
+            this.treeView.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
+            treeNode1,
+            treeNode2});
+            this.treeView.Size = new System.Drawing.Size(256, 222);
             this.treeView.TabIndex = 0;
-            this.treeView.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.TreeNode_Click);
             // 
             // MainForm
             // 
@@ -237,7 +281,10 @@
         private System.Windows.Forms.ToolStripMenuItem fillToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem selectedTileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem combinationTilesToolStripMenuItem;
-        private System.Windows.Forms.TreeView treeView;
+        private WorldDataTree treeView;
+        private System.Windows.Forms.ToolStripMenuItem layerToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem defaultToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem addNewLayerToolStripMenuItem;
     }
 }
 

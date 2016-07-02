@@ -33,7 +33,7 @@ namespace MapCreator.PromptGUI
             prompt.Height = 175;
             prompt.Text = caption;
             Label textLabel = new Label() { Left = 50, Top = 20, Text = text };
-            NumericUpDown inputBox = new NumericUpDown() { Left = 50, Top = 50, Width = 150, Maximum = 4096, Value = currentWidth};
+            NumericUpDown inputBox = new NumericUpDown() { Left = 50, Top = 50, Width = 150, Maximum = 4096, Value = currentWidth };
             NumericUpDown inputBox2 = new NumericUpDown() { Left = 250, Top = 50, Width = 150, Maximum = 4096, Value = currentHeight };
             Button confirmation = new Button() { Text = "Ok", Left = 350, Width = 100, Top = 100 };
             confirmation.Click += (sender, e) => { prompt.Close(); };
